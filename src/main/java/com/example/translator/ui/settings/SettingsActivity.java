@@ -35,6 +35,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Áp dụng theme trước khi tạo activity
+        ThemeManager.applySavedTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
@@ -122,7 +124,7 @@ public class SettingsActivity extends AppCompatActivity {
                     default: theme = "light";
                 }
                 // Uncomment below line if you want immediate theme preview
-                // ThemeManager.applyTheme(theme);
+                // ThemeManager.saveTheme(SettingsActivity.this, theme);
             }
 
             @Override
@@ -251,36 +253,50 @@ public class SettingsActivity extends AppCompatActivity {
                     switchTtsEnabled.isChecked(),
                     switchCameraAutoTranslate.isChecked(),
                     fontSize,
-                    speechRate // Thêm speech rate
+                    speechRate
             );
 
+            // Lưu theme ngay lập tức vào SharedPreferences
+            String currentTheme = ThemeManager.getSavedTheme(this);
+            boolean themeChanged = !theme.equals(currentTheme);
+
+            if (themeChanged) {
+                android.util.Log.d("SettingsActivity", "Theme changed from " + currentTheme + " to " + theme);
+                ThemeManager.saveTheme(this, theme);
+            }
+
+            // Lưu các settings khác vào database
             executor.execute(() -> {
-                viewModel.updateUserPreferences(preferences);
-                runOnUiThread(() -> {
-                    // Áp dụng theme ngay lập tức
-                    ThemeManager.applyTheme(theme);
+                try {
+                    viewModel.updateUserPreferences(preferences);
+                    android.util.Log.d("SettingsActivity", "User preferences saved to database");
 
-                    Toast.makeText(SettingsActivity.this, "Settings saved successfully", Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> {
+                        Toast.makeText(SettingsActivity.this, "Settings saved successfully", Toast.LENGTH_SHORT).show();
 
-                    // Recreate activity để áp dụng theme mới
-                    if (!theme.equals(getCurrentTheme())) {
-                        recreate();
-                    } else {
-                        finish();
-                    }
-                });
+                        // Chỉ recreate nếu theme thay đổi
+                        if (themeChanged) {
+                            android.util.Log.d("SettingsActivity", "Recreating activity due to theme change");
+                            // Delay một chút để đảm bảo theme đã được áp dụng
+                            new android.os.Handler().postDelayed(() -> {
+                                recreate();
+                            }, 100);
+                        } else {
+                            finish();
+                        }
+                    });
+                } catch (Exception e) {
+                    android.util.Log.e("SettingsActivity", "Error saving to database", e);
+                    runOnUiThread(() -> {
+                        Toast.makeText(SettingsActivity.this, "Error saving settings", Toast.LENGTH_SHORT).show();
+                    });
+                }
             });
 
         } catch (Exception e) {
+            android.util.Log.e("SettingsActivity", "Error in saveSettings", e);
             Toast.makeText(this, "Error saving settings", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
         }
-    }
-
-    private String getCurrentTheme() {
-        // Helper method to get current theme
-        return getSharedPreferences("app_prefs", MODE_PRIVATE)
-                .getString("current_theme", "light");
     }
 
     @Override

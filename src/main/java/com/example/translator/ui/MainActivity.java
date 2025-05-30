@@ -1,14 +1,19 @@
 package com.example.translator.ui;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.ExperimentalGetImage;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.translator.R;
 import com.example.translator.ui.camera.CameraFragment;
 import com.example.translator.ui.home.HomeFragment;
 import com.example.translator.ui.text.TextTranslationFragment;
+import com.example.translator.utils.ThemeManager;
 
+@ExperimentalGetImage
+@SuppressLint("UnsafeOptInUsageError")
 public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigation;
@@ -16,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Áp dụng theme trước khi tạo activity
+        ThemeManager.applySavedTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 

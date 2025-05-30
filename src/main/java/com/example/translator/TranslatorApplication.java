@@ -2,11 +2,9 @@ package com.example.translator;
 
 import android.app.Application;
 import android.util.Log;
-import androidx.lifecycle.Observer;
 import com.example.translator.data.local.AppDatabase;
 import com.example.translator.data.repository.LanguageRepository;
 import com.example.translator.data.repository.UserRepository;
-import com.example.translator.data.model.UserPreferences;
 import com.example.translator.utils.ThemeManager;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,13 +66,14 @@ public class TranslatorApplication extends Application {
             applicationExecutor = Executors.newFixedThreadPool(4);
             Log.d(TAG, "Application executor initialized");
 
+            // Áp dụng theme đã lưu NGAY LẬP TỨC
+            ThemeManager.applySavedTheme(this);
+            Log.d(TAG, "Applied saved theme: " + ThemeManager.getSavedTheme(this));
+
             // Initialize repositories to ensure database is created
             getDatabase();
             getLanguageRepository();
             getUserRepository();
-
-            // Apply saved theme immediately
-            applyUserTheme();
 
             // Initialize supported languages data in background
             applicationExecutor.execute(() -> {
@@ -94,22 +93,6 @@ public class TranslatorApplication extends Application {
         } catch (Exception e) {
             Log.e(TAG, "Error in application onCreate", e);
         }
-    }
-
-    private void applyUserTheme() {
-        // Observe user preferences to apply theme
-        getUserRepository().getUserPreferences().observeForever(new Observer<UserPreferences>() {
-            @Override
-            public void onChanged(UserPreferences userPreferences) {
-                if (userPreferences != null) {
-                    Log.d(TAG, "Applying user theme: " + userPreferences.getTheme());
-                    ThemeManager.applyTheme(userPreferences.getTheme());
-
-                    // Remove observer after first use to avoid multiple calls
-                    getUserRepository().getUserPreferences().removeObserver(this);
-                }
-            }
-        });
     }
 
     @Override
