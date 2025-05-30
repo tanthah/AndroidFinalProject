@@ -117,7 +117,7 @@ public class ImageTranslationViewModel extends ViewModel {
 
                 // Step 2: Recognize text from image
                 Log.d(TAG, "Starting text recognition...");
-                textRecognitionService.recognizeTextFromBitmap(bitmap, new TextRecognitionService.TextRecognitionCallback() {
+                    textRecognitionService.recognizeTextFromBitmap(bitmap, new TextRecognitionService.TextRecognitionCallback() {
                     @Override
                     public void onSuccess(String recognizedText) {
                         Log.d(TAG, "Text recognition successful");
